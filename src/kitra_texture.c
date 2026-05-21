@@ -191,12 +191,15 @@ void KitraDrawTextureEx(KitraTexture *tex, const KitraRect *src, const KitraRect
     {
     case KITRA_FLIP_NONE:
         SDL_RenderCopyEx(gKitraCtx.core.renderer, tex->handle, pSrc, pDst, (double)angle, pPivot, (SDL_RendererFlip)SDL_FLIP_NONE);
+        break;
 
     case KITRA_FLIP_VERTICAL:
         SDL_RenderCopyEx(gKitraCtx.core.renderer, tex->handle, pSrc, pDst, (double)angle, pPivot, (SDL_RendererFlip)SDL_FLIP_VERTICAL);
+        break;
 
     case KITRA_FLIP_HORIZONTAL:
         SDL_RenderCopyEx(gKitraCtx.core.renderer, tex->handle, pSrc, pDst, (double)angle, pPivot, (SDL_RendererFlip)SDL_FLIP_HORIZONTAL);
+        break;
     }
 }
 
