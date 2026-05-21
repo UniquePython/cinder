@@ -4,8 +4,8 @@
 /**
  * @brief Return codes used throughout the Kitra API.
  *
- * Every Kitra function that can fail and does not return a pointer, returns a KitraStatus value.
- * Check against KITRA_STATUS_OK to determine success.
+ * Every Kitra function that can fail and does not return a pointer returns a
+ * KitraStatus value. Check against KITRA_STATUS_OK to determine success.
  *
  * @see KitraGetLastError()
  */
@@ -17,13 +17,11 @@ typedef enum
     KITRA_STATUS_WINDOW_CREATE_FAILED,   /**< The SDL2 window could not be created. */
     KITRA_STATUS_RENDERER_CREATE_FAILED, /**< The SDL2 renderer could not be created. */
     KITRA_STATUS_PLUGIN_MAX_REACHED,     /**< The plugin registry is full — KITRA_MAX_PLUGINS plugins are already registered. */
-    KITRA_STATUS_PLUGIN_NO_NAME,         /**< A plugin was registered without a name. */
-    KITRA_STATUS_PLUGIN_DUPLICATE_NAME,  /**< A plugin with the same name is already registered. */
+    KITRA_STATUS_PLUGIN_INVALID_HANDLE,  /**< The plugin handle is stale, invalid, or was never returned by KitraRegisterPlugin. */
     KITRA_STATUS_RENDERER_MISSING,       /**< An operation requiring a renderer was attempted before the renderer was created. */
     KITRA_STATUS_TEXTURE_NULL,           /**< A NULL texture was passed to a function that requires a valid texture. */
     KITRA_STATUS_SCREENSHOT_FAILED,      /**< The screenshot could not be saved to disk. */
     KITRA_STATUS_MSGBOX_FAILED,          /**< SDL failed to display the message box. */
-
 } KitraStatus;
 
 #endif /* KITRA_STATUS_H_ */

@@ -19,6 +19,10 @@ KitraStatus KitraInit(KitraSubsystem flags)
 
     gKitraCtx = (KitraCtx){0};
 
+    for (int i = 0; i < KITRA_MAX_PLUGINS; i++)
+        gKitraCtx.pluginFreeList[i] = (uint16_t)(KITRA_MAX_PLUGINS - 1 - i);
+    gKitraCtx.pluginFreeHead = 0;
+
     gKitraCtx.timing.perfFrequency = SDL_GetPerformanceFrequency();
 
     KitraInputInit();
@@ -88,9 +92,12 @@ KitraStatus KitraInit(KitraSubsystem flags)
 
 void KitraQuit(void)
 {
-    for (int i = gKitraCtx.pluginCount - 1; i >= 0; i--)
-        if (gKitraCtx.plugins[i].shutdown)
-            gKitraCtx.plugins[i].shutdown(gKitraCtx.plugins[i].userdata);
+    for (int i = 0; i < gKitraCtx.pluginCount; i++)
+    {
+        KitraPlugin *p = &gKitraCtx.pluginDense[i].plugin;
+        if (p->shutdown)
+            p->shutdown(p->userdata);
+    }
 
     KitraDestroyWindow();
 

@@ -60,8 +60,11 @@ void KitraBeginFrame(void)
     // ---------------- Plugin callbacks ----------------
 
     for (int i = 0; i < gKitraCtx.pluginCount; i++)
-        if (gKitraCtx.plugins[i].update)
-            gKitraCtx.plugins[i].update(gKitraCtx.timing.deltaTime, gKitraCtx.plugins[i].userdata);
+    {
+        KitraPlugin *p = &gKitraCtx.pluginDense[i].plugin;
+        if (p->update)
+            p->update(gKitraCtx.timing.deltaTime, p->userdata);
+    }
 }
 
 void KitraEndFrame(void)
@@ -75,8 +78,11 @@ void KitraEndFrame(void)
     gKitraCtx.loop.frameBegun = false;
 
     for (int i = 0; i < gKitraCtx.pluginCount; i++)
-        if (gKitraCtx.plugins[i].draw)
-            gKitraCtx.plugins[i].draw(gKitraCtx.plugins[i].userdata);
+    {
+        KitraPlugin *p = &gKitraCtx.pluginDense[i].plugin;
+        if (p->draw)
+            p->draw(p->userdata);
+    }
 
     if (gKitraCtx.timing.targetFPS > 0)
     {

@@ -134,6 +134,31 @@ typedef struct KitraLogState
 } KitraLogState;
 
 /**
+ * @brief A single entry in the dense plugin array.
+ *
+ * Pairs the plugin descriptor with the sparse slot index that owns it,
+ * so that an O(1) swap-with-last removal can update the indirection table.
+ */
+typedef struct KitraPluginEntry
+{
+    KitraPlugin plugin; /**< The plugin descriptor. */
+    uint16_t slotIndex; /**< Index into pluginSlots[] that references this dense entry. */
+} KitraPluginEntry;
+
+/**
+ * @brief A single slot in the sparse indirection table.
+ *
+ * Maps a stable handle index to a position in the dense array. The
+ * generation counter is incremented each time the slot is recycled,
+ * permanently invalidating any handles that reference the prior occupant.
+ */
+typedef struct KitraPluginSlot
+{
+    uint16_t denseIndex; /**< Current position of this plugin in pluginDense[]. */
+    uint16_t generation; /**< Incremented on every unregister of this slot. Starts at 0. */
+} KitraPluginSlot;
+
+/**
  * @brief The global Kitra context.
  *
  * The single top-level struct that holds all library state — core SDL2
@@ -152,8 +177,11 @@ typedef struct KitraCtx
     KitraLogState log;       /**< Logging and error reporting state. */
     KitraRng rng;            /**< Global random number generator instance. */
 
-    KitraPlugin plugins[KITRA_MAX_PLUGINS]; /**< Registered plugin instances, up to KITRA_MAX_PLUGINS. */
-    int pluginCount;                        /**< Number of currently registered plugins. */
+    KitraPluginEntry pluginDense[KITRA_MAX_PLUGINS]; /**< Packed array of active plugins, iterated every frame. */
+    KitraPluginSlot pluginSlots[KITRA_MAX_PLUGINS];  /**< Sparse indirection table; indexed by handle.index. */
+    uint16_t pluginFreeList[KITRA_MAX_PLUGINS];      /**< Stack of slot indices available for reuse. */
+    int pluginFreeHead;                              /**< Stack top: index of the next slot to hand out. */
+    int pluginCount;                                 /**< Number of currently registered plugins. */
 } KitraCtx;
 
 extern KitraCtx gKitraCtx;

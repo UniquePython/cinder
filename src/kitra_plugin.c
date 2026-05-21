@@ -1,58 +1,97 @@
 #include "kitra_internal.h"
 
-KitraStatus KitraRegisterPlugin(KitraPlugin plugin)
+KitraPluginHandle KitraRegisterPlugin(KitraPlugin plugin, KitraStatus *status)
 {
+#define RETURN_ERR(code)                    \
+    do                                      \
+    {                                       \
+        if (status)                         \
+            *status = (code);               \
+        return KITRA_PLUGIN_HANDLE_INVALID; \
+    } while (0)
+
     if (gKitraCtx.pluginCount >= KITRA_MAX_PLUGINS)
     {
         KITRA_LOG(KITRA_LOG_ERROR, "Maximum plugin count reached");
-        return KITRA_STATUS_PLUGIN_MAX_REACHED;
+        RETURN_ERR(KITRA_STATUS_PLUGIN_MAX_REACHED);
     }
 
-    if (!plugin.name)
-    {
-        KITRA_LOG(KITRA_LOG_ERROR, "Plugin must have a name");
-        return KITRA_STATUS_PLUGIN_NO_NAME;
-    }
+    /* Pop a free slot index off the free list stack */
+    uint16_t slotIndex = gKitraCtx.pluginFreeList[gKitraCtx.pluginFreeHead];
+    gKitraCtx.pluginFreeHead++;
 
-    for (int i = 0; i < gKitraCtx.pluginCount; i++)
-    {
-        if (strcmp(gKitraCtx.plugins[i].name, plugin.name) == 0)
-        {
-            KITRA_LOG(KITRA_LOG_ERROR, "A plugin with that name is already registered");
-            return KITRA_STATUS_PLUGIN_DUPLICATE_NAME;
-        }
-    }
+    KitraPluginSlot *slot = &gKitraCtx.pluginSlots[slotIndex];
 
-    gKitraCtx.plugins[gKitraCtx.pluginCount] = plugin;
+    /* Place the new plugin at the end of the dense array and link it back
+       to its slot so that swap-with-last removal can find the slot later */
+    uint16_t denseIndex = (uint16_t)gKitraCtx.pluginCount;
+    gKitraCtx.pluginDense[denseIndex].plugin = plugin;
+    gKitraCtx.pluginDense[denseIndex].slotIndex = slotIndex;
+    slot->denseIndex = denseIndex;
+
+    /* Issue the handle before calling init so the caller has a valid handle
+       even if init triggers further engine operations */
+    KitraPluginHandle handle = {
+        .index = slotIndex,
+        .generation = slot->generation,
+    };
+
+    gKitraCtx.pluginCount++;
 
     if (plugin.init)
         plugin.init(plugin.userdata);
 
-    gKitraCtx.pluginCount++;
+    if (status)
+        *status = KITRA_STATUS_OK;
+    return handle;
 
-    return KITRA_STATUS_OK;
+#undef RETURN_ERR
 }
 
-void KitraUnregisterPlugin(const char *name)
+KitraStatus KitraUnregisterPlugin(KitraPluginHandle handle)
 {
-    if (!name)
-        return;
+    if (!KitraPluginHandleIsValid(handle))
+        return KITRA_STATUS_PLUGIN_INVALID_HANDLE;
 
-    for (int i = 0; i < gKitraCtx.pluginCount; i++)
+    uint16_t slotIndex = handle.index;
+
+    if (slotIndex >= KITRA_MAX_PLUGINS)
+        return KITRA_STATUS_PLUGIN_INVALID_HANDLE;
+
+    KitraPluginSlot *slot = &gKitraCtx.pluginSlots[slotIndex];
+
+    if (slot->generation != handle.generation)
     {
-        if (strcmp(gKitraCtx.plugins[i].name, name) == 0)
-        {
-            if (gKitraCtx.plugins[i].shutdown)
-                gKitraCtx.plugins[i].shutdown(gKitraCtx.plugins[i].userdata);
-
-            /* Shift remaining plugins down to fill the gap */
-            for (int j = i; j < gKitraCtx.pluginCount - 1; j++)
-                gKitraCtx.plugins[j] = gKitraCtx.plugins[j + 1];
-
-            gKitraCtx.pluginCount--;
-            return;
-        }
+        KITRA_LOG(KITRA_LOG_WARNING, "KitraUnregisterPlugin: stale handle");
+        return KITRA_STATUS_PLUGIN_INVALID_HANDLE;
     }
 
-    KITRA_LOG(KITRA_LOG_WARNING, "Plugin not found");
+    uint16_t denseIndex = slot->denseIndex;
+    KitraPlugin *plugin = &gKitraCtx.pluginDense[denseIndex].plugin;
+
+    if (plugin->shutdown)
+        plugin->shutdown(plugin->userdata);
+
+    /* Bump generation to permanently invalidate all existing handle copies */
+    slot->generation++;
+
+    /* O(1) removal: overwrite the target with the last dense entry */
+    uint16_t lastDense = (uint16_t)(gKitraCtx.pluginCount - 1);
+
+    if (denseIndex != lastDense)
+    {
+        gKitraCtx.pluginDense[denseIndex] = gKitraCtx.pluginDense[lastDense];
+
+        /* Update the moved plugin's slot so its handle still resolves correctly */
+        uint16_t movedSlot = gKitraCtx.pluginDense[denseIndex].slotIndex;
+        gKitraCtx.pluginSlots[movedSlot].denseIndex = denseIndex;
+    }
+
+    gKitraCtx.pluginCount--;
+
+    /* Return the slot to the free list stack */
+    gKitraCtx.pluginFreeHead--;
+    gKitraCtx.pluginFreeList[gKitraCtx.pluginFreeHead] = slotIndex;
+
+    return KITRA_STATUS_OK;
 }
