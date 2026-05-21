@@ -160,8 +160,7 @@ KitraSurface *KitraScreenshotSurface(void)
     return surface;
 }
 
-void KitraDrawTextureEx(KitraTexture *tex, const KitraRect *src, const KitraRect *dst,
-                        float angle, const KitraPoint *pivot, int flip)
+void KitraDrawTextureEx(KitraTexture *tex, const KitraRect *src, const KitraRect *dst, float angle, const KitraPoint *pivot, KitraFlipFlags flip)
 {
     if (!gKitraCtx.core.renderer || !tex)
         return;
@@ -188,7 +187,17 @@ void KitraDrawTextureEx(KitraTexture *tex, const KitraRect *src, const KitraRect
         pPivot = &sdlPivot;
     }
 
-    SDL_RenderCopyEx(gKitraCtx.core.renderer, tex->handle, pSrc, pDst, (double)angle, pPivot, (SDL_RendererFlip)flip);
+    switch (flip)
+    {
+    case KITRA_FLIP_NONE:
+        SDL_RenderCopyEx(gKitraCtx.core.renderer, tex->handle, pSrc, pDst, (double)angle, pPivot, (SDL_RendererFlip)SDL_FLIP_NONE);
+
+    case KITRA_FLIP_VERTICAL:
+        SDL_RenderCopyEx(gKitraCtx.core.renderer, tex->handle, pSrc, pDst, (double)angle, pPivot, (SDL_RendererFlip)SDL_FLIP_VERTICAL);
+
+    case KITRA_FLIP_HORIZONTAL:
+        SDL_RenderCopyEx(gKitraCtx.core.renderer, tex->handle, pSrc, pDst, (double)angle, pPivot, (SDL_RendererFlip)SDL_FLIP_HORIZONTAL);
+    }
 }
 
 void KitraDrawTexture(KitraTexture *tex, int x, int y)

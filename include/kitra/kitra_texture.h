@@ -88,6 +88,22 @@ KitraStatus KitraScreenshot(const char *path);
 KitraSurface *KitraScreenshotSurface(void);
 
 /**
+ * @brief Flags controlling the flip orientation of a drawn texture.
+ *
+ * Passed to @p KitraDrawTextureEx to mirror a texture along the horizontal
+ * or vertical axis. @p KITRA_FLIP_NONE applies no mirroring.
+ *
+ * @see KitraDrawTextureEx
+ */
+typedef enum
+{
+    KITRA_FLIP_NONE,       /**< No flip — texture is drawn as-is. */
+    KITRA_FLIP_HORIZONTAL, /**< Mirror the texture along the vertical axis (left ↔ right). */
+    KITRA_FLIP_VERTICAL    /**< Mirror the texture along the horizontal axis (top ↔ bottom). */
+
+} KitraFlipFlags;
+
+/**
  * @brief Draws a texture with explicit source and destination rectangles,
  *        rotation, pivot, and flip.
  *
@@ -106,12 +122,12 @@ KitraSurface *KitraScreenshotSurface(void);
  * @param angle  Clockwise rotation angle in degrees.
  * @param pivot  Point around which to rotate, relative to @p dst, or @p NULL
  *               for the center of @p dst.
- * @param flip   Flip flags — @p SDL_FLIP_NONE, @p SDL_FLIP_HORIZONTAL, or
- *               @p SDL_FLIP_VERTICAL.
+ * @param flip   Flip flags — @p KITRA_FLIP_NONE, @p KITRA_FLIP_HORIZONTAL, or
+ *               @p KITRA_FLIP_VERTICAL.
  *
  * @see KitraDrawTexture, KitraDrawTextureP
  */
-void KitraDrawTextureEx(KitraTexture *tex, const KitraRect *src, const KitraRect *dst, float angle, const KitraPoint *pivot, int flip);
+void KitraDrawTextureEx(KitraTexture *tex, const KitraRect *src, const KitraRect *dst, float angle, const KitraPoint *pivot, KitraFlipFlags flip);
 
 /**
  * @brief Draws a texture at the given coordinates at its natural size.
