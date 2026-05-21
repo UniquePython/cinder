@@ -45,7 +45,6 @@ void KitraRequestQuit(void);
  * -# Resets per-frame input state (pressed, released, mouse delta, scroll).
  * -# Processes all pending SDL2 events, triggering KitraRequestQuit()
  *    on a window close event.
- * -# Calls the update callback of every registered plugin.
  *
  * @note Calling input functions or draw functions before KitraBeginFrame()
  *       will produce stale or undefined results.
@@ -60,7 +59,6 @@ void KitraBeginFrame(void);
  * Must be called once at the end of every iteration of the main loop,
  * after all drawing is complete. Performs the following in order:
  *
- * -# Calls the draw callback of every registered plugin.
  * -# If a target FPS is set, sleeps for the remaining frame time to
  *    cap the frame rate.
  * -# Presents the renderer's back buffer to the screen.

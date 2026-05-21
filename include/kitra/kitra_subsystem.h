@@ -52,8 +52,7 @@ KitraStatus KitraInit(KitraSubsystem flags);
  * @brief Shuts down the Kitra library and frees all resources.
  *
  * Shuts down all active subsystems and releases all resources in the
- * correct order — plugins are shut down in reverse registration order,
- * followed by the window, renderer, and SDL2 subsystems. Should be
+ * correct order — the window, renderer, and SDL2 subsystems. Should be
  * called once at the end of the program, after the main loop exits.
  *
  * @note Calling any Kitra function after KitraQuit() results in

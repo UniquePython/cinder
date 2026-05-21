@@ -135,7 +135,7 @@ Then include the header:
 |---|---|---|
 | Subsystem | `kitra/kitra_subsystem.h` | Initialize and shut down Kitra; supports `VIDEO`, `AUDIO`, `EVENTS`, or `KITRA_SUBSYSTEM_ALL` flags with rollback safety on failure |
 | Window | `kitra/kitra_window.h` | Create and destroy the window with configurable flags (resizable, fullscreen, borderless, hidden); query size and per-frame resize events; access raw SDL window and renderer handles |
-| Loop | `kitra/kitra_loop.h` | Main loop control — `KitraBeginFrame` processes events, updates input, and ticks plugins; `KitraEndFrame` draws plugins, caps FPS, and presents the frame |
+| Loop | `kitra/kitra_loop.h` | Main loop control — `KitraBeginFrame` processes events, updates input; `KitraEndFrame` caps FPS, and presents the frame |
 | Input | `kitra/kitra_input.h` | Keyboard (down, pressed, released) and mouse (position, per-frame delta, scroll wheel, button down/pressed/released) queries |
 | Drawing | `kitra/kitra_draw.h` | Points, plain and thick lines, filled and outlined circles, ellipses, triangles, polygons, and rectangles (plain and rounded); blend mode control |
 | Color | `kitra/kitra_color.h` | Color construction via RGBA/HSV; lerp, fade, brighten, darken, invert, equality test, and pack/unpack to `uint32_t` |
@@ -147,7 +147,6 @@ Then include the header:
 | RNG | `kitra/kitra_rng.h` | PCG32 PRNG with per-instance (`KitraRng`) and global (`KitraRand*`) APIs; integers, bounded uints, floats, ranges, random points, unit directions, and probability checks |
 | Math | `kitra/kitra_math.h` | 2D integer and float vectors (add, subtract, scale, dot, cross, normalize, rotate, lerp, angle); signed distance functions for points, rects, circles, and ellipses; quadratic, sine, and back easing curves |
 | Types | `kitra/kitra_types.h` | Core data structures — `KitraVec2i`, `KitraVec2f`, `KitraPoint`, `KitraSize`, `KitraRect`, `KitraCircle`, `KitraEllipse`, `KitraColor`, `KitraBlendMode`; included transitively via `kitra.h` |
-| Plugins | `kitra/kitra_plugin.h` | Register and unregister named lifecycle plugins with `init`, `update`, `draw`, and `shutdown` callbacks; up to `KITRA_MAX_PLUGINS` (default 16, overridable) active at once |
 | Error & Logging | `kitra/kitra_error.h` | Log callback registration, last-error and severity retrieval, `KitraClearError`; default callback prints colored output to stdout/stderr; `KITRA_LOG` macro for internal use |
 
 ## Examples

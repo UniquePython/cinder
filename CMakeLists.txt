@@ -53,7 +53,6 @@ add_library(kitra STATIC
     src/kitra_text.c
     src/kitra_error.c
     src/kitra_rng.c
-    src/kitra_plugin.c
     src/kitra_audio.c
     src/kitra_dialog.c
     src/kitra_surface.c
@@ -136,7 +135,6 @@ install(FILES
     include/kitra/kitra_text.h
     include/kitra/kitra_error.h
     include/kitra/kitra_rng.h
-    include/kitra/kitra_plugin.h
     include/kitra/kitra_audio.h
     include/kitra/kitra_dialog.h
     include/kitra/kitra_surface.h

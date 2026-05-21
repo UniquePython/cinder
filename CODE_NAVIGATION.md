@@ -39,8 +39,6 @@ typedef struct KitraCtx {
     KitraInputState input;    // keyboard + mouse state arrays
     KitraLogState   log;      // callback, userdata, lastError, lastLevel
     KitraRng        rng;      // global PCG32 instance
-    KitraPlugin     plugins[KITRA_MAX_PLUGINS];
-    int             pluginCount;
 } KitraCtx;
 
 extern KitraCtx gKitraCtx;  // declared in kitra_subsystem.c
@@ -54,7 +52,7 @@ Almost every function in every `.c` file reads from or writes to `gKitraCtx`. Wh
 
 ### Startup and teardown — `kitra_subsystem.c`
 
-This is where `gKitraCtx` is defined (the one definition in the entire program). `KitraInit` zeroes the context, initializes SDL subsystems in dependency order, seeds the global RNG, and sets up the default log callback. `KitraQuit` tears everything down in reverse: plugins first (reverse registration order), then window/renderer, then SDL subsystems.
+This is where `gKitraCtx` is defined (the one definition in the entire program). `KitraInit` zeroes the context, initializes SDL subsystems in dependency order, seeds the global RNG, and sets up the default log callback. `KitraQuit` tears everything down in reverse: window/renderer, then SDL subsystems.
 
 **If the library crashes on init or quits uncleanly, start here.**
 
@@ -67,12 +65,10 @@ BeginFrame:
   1. Compute deltaTime from performance counter
   2. Reset per-frame input (pressed[], released[], deltas)
   3. SDL_PollEvent loop → KitraInputProcessEvent or KitraRequestQuit
-  4. Call plugin->update() for each registered plugin
 
 EndFrame:
-  1. Call plugin->draw() for each registered plugin
-  2. Sleep if targetFPS is set (busy-wait avoidance via SDL_Delay)
-  3. SDL_RenderPresent
+  1. Sleep if targetFPS is set (busy-wait avoidance via SDL_Delay)
+  2. SDL_RenderPresent
 ```
 
 The `frameBegun` flag in `gKitraCtx.loop` exists purely to catch mismatched Begin/End calls.
@@ -132,12 +128,6 @@ The `TTF_Init` call is lazy — it happens inside `KitraLoadFont` only if `ttfIn
 Implements PCG32, with the algorithm commented and cited. Each `KitraRng` instance is independent. The global `KitraRand*` functions are thin wrappers that pass `&gKitraCtx.rng`.
 
 `KitraRngDirection` uses rejection sampling on the unit disk rather than `cos`/`sin` — this is unbiased and avoids trig. It loops, but the expected number of iterations is 4/π ≈ 1.27.
-
-### Plugins — `kitra_plugin.c`
-
-Plugins are stored in a flat array in `gKitraCtx.plugins[KITRA_MAX_PLUGINS]`. Registration calls `init` immediately. `BeginFrame` calls `update` in order, `EndFrame` calls `draw` in order. Unregistration shifts the remaining plugins down to fill the gap, preserving relative order.
-
-The cap is `KITRA_MAX_PLUGINS` (default 16). You can override it by defining the macro before including `kitra.h`.
 
 ---
 
